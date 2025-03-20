@@ -76,27 +76,35 @@ server.tool(
   "list-projects",
   "List all projects",
   {
-    searchTerm: z.string().optional().describe("Optional search term to filter projects"),
+    query: z.string().describe("Search query for filtering projects")
   },
-  async ({ searchTerm }) => {
-    const result = await findProjects({ searchTerm });
-    if (!result.success) {
+  async ({ query }) => {
+    try {
+      const result = await findProjects({ searchTerm: query });
+      if (!result.success) {
+        return {
+          content: [{ type: "text", text: result.error || "Failed to list projects" }],
+          isError: true,
+        };
+      }
+      const projects = result.projects || [];
       return {
-        content: [{ type: "text", text: result.error || "Failed to list projects" }],
+        content: [
+          {
+            type: "text",
+            text: projects.length > 0
+              ? `Projects:\n${projects.map((p) => `- ${p.name} (ID: ${p.id})`).join("\n")}`
+              : "No projects found.",
+          }
+        ],
+      };
+    } catch (error) {
+      console.error('Error in list-projects:', error);
+      return {
+        content: [{ type: "text", text: "Internal error while listing projects" }],
         isError: true,
       };
     }
-    const projects = result.projects || [];
-    return {
-      content: [
-        {
-          type: "text",
-          text: projects.length > 0
-            ? `Projects:\n${projects.map((p) => `- ${p.name} (ID: ${p.id})`).join("\n")}`
-            : "No projects found.",
-        },
-      ],
-    };
   }
 );
 
