@@ -1,0 +1,7 @@
+
+> planner@1.0.0 dev:sse /workspace/planner-mcp
+> tsc && node dist/index.sse.js
+
+Task and Requirement Planner MCP Server running on port 54398
+SSE endpoint available at http://localhost:54398/mcp
+ ELIFECYCLE  Command failed.

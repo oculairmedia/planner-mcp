@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MCP SSE Test Client</title>
+</head>
+<body>
+    <h1>MCP SSE Test Client</h1>
+    <div id="output"></div>
+
+    <script>
+        const output = document.getElementById('output');
+        const appendMessage = (msg) => {
+            const p = document.createElement('p');
+            p.textContent = msg;
+            output.appendChild(p);
+        };
+
+        // Connect to SSE endpoint
+        const evtSource = new EventSource('http://localhost:54398/mcp');
+
+        evtSource.onopen = () => {
+            appendMessage('Connected to SSE server');
+        };
+
+        evtSource.onmessage = (event) => {
+            appendMessage(`Received: ${event.data}`);
+        };
+
+        evtSource.onerror = (error) => {
+            appendMessage(`Error: ${error.type}`);
+            console.error('EventSource error:', error);
+        };
+
+        // Function to send a message to the server
+        async function sendMessage(message) {
+            try {
+                const sessionId = evtSource.url.split('/').pop(); // Get session ID from URL
+                const response = await fetch('http://localhost:54398/mcp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-MCP-Session-ID': sessionId
+                    },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'list-projects',
+                        params: {},
+                        id: 1
+                    })
+                });
+                
+                const result = await response.json();
+                appendMessage(`Response: ${JSON.stringify(result)}`);
+            } catch (error) {
+                appendMessage(`Error sending message: ${error.message}`);
+                console.error('Error sending message:', error);
+            }
+        }
+
+        // Add a button to test sending a message
+        const button = document.createElement('button');
+        button.textContent = 'List Projects';
+        button.onclick = () => sendMessage('list-projects');
+        document.body.appendChild(button);
+    </script>
+</body>
+</html>
